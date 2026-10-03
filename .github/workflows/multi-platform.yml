@@ -8,14 +8,32 @@ on:
 
 jobs:
   build:
-    name: Build Mod
+    name: Build Windows Mod
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Geode Mod
-        uses: geode-sdk/build-geode-action@main
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          sdk: nightly
-          combine: true
+          submodules: true
+
+      - name: Set up Developer Command Prompt (MSVC)
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Download and Install Geode CLI
+        shell: powershell
+        run: |
+          $cliUrl = "https://github.com/geode-sdk/cli/releases/latest/download/geode-cli-win.zip"
+          Invoke-WebRequest -Uri $cliUrl -OutFile "geode-cli.zip"
+          Expand-Archive -Path "geode-cli.zip" -DestinationPath "$env:USERPROFILE\.geode\bin"
+          echo "$env:USERPROFILE\.geode\bin" >> $env:GITHUB_PATH
+
+      - name: Build Mod with Geode CLI
+        run: |
+          geode build
+
+      - name: Upload .geode Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3Dmodel-importer-Windows
+          path: build/*.geode
