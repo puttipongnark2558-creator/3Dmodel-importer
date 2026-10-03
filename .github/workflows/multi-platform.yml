@@ -1,4 +1,4 @@
-name: Build Multi-Platform Geode Mod
+name: Build Geode Mod
 
 on:
   workflow_dispatch:
@@ -14,16 +14,14 @@ jobs:
         config:
           - name: Windows
             os: windows-latest
-            target: ''
           - name: macOS
             os: macos-latest
-            target: ''
-          - name: Android-64
-            os: ubuntu-latest
-            target: Android64
-          - name: Android-32
+          - name: Android32
             os: ubuntu-latest
             target: Android32
+          - name: Android64
+            os: ubuntu-latest
+            target: Android64
 
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -35,12 +33,23 @@ jobs:
           submodules: true
 
       - name: Build Mod with Geode SDK
-        uses: geode-sdk/build-geode-action@v3
+        uses: geode-sdk/build-geode-mod@main
         with:
+          combine: true
           target: ${{ matrix.config.target }}
 
-      - name: Upload Artifact
+  package:
+    name: Package Universal Mod
+    runs-on: ubuntu-latest
+    needs: ['build']
+
+    steps:
+      - name: Combine platforms into one .geode file
+        uses: geode-sdk/build-geode-mod/combine@main
+        id: build
+
+      - name: Upload Universal Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 3Dmodel-importer-${{ matrix.config.name }}
-          path: build/*.geode
+          name: 3Dmodel-importer-Universal
+          path: ${{ steps.build.outputs.build-output }}
