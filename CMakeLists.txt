@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.13.4)
 
+# Force CMake 4+ policy compatibility for Geode dependencies
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0.0")
+    cmake_policy(SET CMP0169 OLD)
+    set(CMAKE_POLICY_VERSION_MINIMUM "3.5" CACHE STRING "Minimum policy version" FORCE)
+endif()
+
 project(3Dmodel-importer VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 20)
