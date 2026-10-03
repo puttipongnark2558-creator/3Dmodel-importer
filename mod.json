@@ -1,0 +1,11 @@
+{
+  "geode": "3.3.0",
+  "gd": "2.204",
+  "version": "v1.0.0",
+  "id": "puttipongnark2558-creator.3dmodel_importer",
+  "name": "3Dmodel importer",
+  "developer": "misterlope (Kaopod)",
+  "description": "Imports 3D models (.obj) from Blender directly into Geometry Dash using optimized triangles and squares. Developed in Chumphon, Thailand. Credits to coldsandgamer, toopter, and coopertoodum.",
+  "early-load": false,
+  "dependencies": []
+}
