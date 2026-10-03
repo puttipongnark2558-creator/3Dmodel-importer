@@ -7,9 +7,26 @@ on:
       - main
 
 jobs:
-  build-windows:
-    name: Build Windows Mod (.geode)
-    runs-on: windows-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Windows
+            os: windows-latest
+            target: ''
+          - name: macOS
+            os: macos-latest
+            target: ''
+          - name: Android-64
+            os: ubuntu-latest
+            target: Android64
+          - name: Android-32
+            os: ubuntu-latest
+            target: Android32
+
+    name: Build ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
 
     steps:
       - name: Checkout repository
@@ -17,56 +34,13 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up Developer Command Prompt (MSVC)
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build Mod with Geode SDK
+        uses: geode-sdk/build-geode-action@v3
+        with:
+          target: ${{ matrix.config.target }}
 
-      - name: Download and Install Geode CLI
-        shell: powershell
-        run: |
-          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/geode-sdk/cli/releases/latest"
-          $asset = $release.assets | Where-Object { $_.name -like "*win*" -or $_.name -like "*windows*" } | Select-Object -First 1
-          Write-Host "Downloading $($asset.name)..."
-          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "geode-cli.zip"
-          New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.geode\bin"
-          Expand-Archive -Path "geode-cli.zip" -DestinationPath "$env:USERPROFILE\.geode\bin" -Force
-          echo "$env:USERPROFILE\.geode\bin" >> $env:GITHUB_PATH
-
-      - name: Build Mod with Geode CLI
-        run: |
-          geode build
-
-      - name: Upload Windows .geode Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 3Dmodel-importer-Windows
-          path: build/*.geode
-
-  build-mac:
-    name: Build macOS Mod (.geode)
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Download and Install Geode CLI
-        run: |
-          mkdir -p ~/.geode/bin
-          URL=$(curl -s https://api.github.com/repos/geode-sdk/cli/releases/latest | grep "browser_download_url" | grep -iE "mac|apple|darwin" | cut -d '"' -f 4 | head -n 1)
-          echo "Downloading $URL"
-          curl -L -o geode-cli.zip "$URL"
-          unzip -o geode-cli.zip -d ~/.geode/bin
-          chmod +x ~/.geode/bin/geode
-          echo "$HOME/.geode/bin" >> $GITHUB_PATH
-
-      - name: Build Mod with Geode CLI
-        run: |
-          geode build
-
-      - name: Upload macOS .geode Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 3Dmodel-importer-macOS
+          name: 3Dmodel-importer-${{ matrix.config.name }}
           path: build/*.geode
